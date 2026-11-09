@@ -15,6 +15,7 @@ class Config(BaseSettings):
 
     ollama_url: str = "http://127.0.0.1:11434"
     ollama_model: str = ""
+    ia_provedor: str = "ollama"
 
 
 config = Config()
