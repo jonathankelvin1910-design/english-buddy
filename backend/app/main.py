@@ -4,8 +4,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.routers import auth
 
 app = FastAPI(title="English Buddy")
+app.include_router(auth.router)
 
 app.add_middleware(
     CORSMiddleware,
