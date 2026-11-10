@@ -4,10 +4,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.routers import auth
+from app.routers import auth, conversas
 
 app = FastAPI(title="English Buddy")
 app.include_router(auth.router)
+app.include_router(conversas.router)
 
 app.add_middleware(
     CORSMiddleware,
