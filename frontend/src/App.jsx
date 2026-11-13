@@ -1,12 +1,14 @@
-import buddy from './assets/buddy.svg'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import RotaProtegida from './componentes/RotaProtegida'
+import Conversas from './paginas/Conversas'
+import Login from './paginas/Login'
 
 export default function App() {
   return (
-    <main style={{ maxWidth: 420, margin: '60px auto', textAlign: 'center' }}>
-      <img src={buddy} alt="Buddy, o pug mascote" width={180} />
-      <h1>English <span style={{ color: 'var(--destaque)' }}>Buddy</span></h1>
-      <p style={{ color: 'var(--texto-suave)' }}>Frontend funcionando.</p>
-      <button className="botao">Começar a conversar</button>
-    </main>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<RotaProtegida><Conversas /></RotaProtegida>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
