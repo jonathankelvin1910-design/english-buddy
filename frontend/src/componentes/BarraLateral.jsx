@@ -1,15 +1,13 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
-export default function BarraLateral({
-  aberta, conversas, cenarios, usuario, aoNova, aoApagar, aoSair, aoFechar,
-}) {
+export default function BarraLateral({ aberta, conversas, cenarios, aoNova, aoApagar, aoFechar }) {
   const [cenario, setCenario] = useState('')
 
   return (
     <aside className={'lateral' + (aberta ? ' aberta' : '')}>
       <div className="lateral-topo">
-        <b>Conversas</b>
+        <b>Suas conversas</b>
         <button className="fechar" onClick={aoFechar} aria-label="Fechar menu">×</button>
       </div>
 
@@ -25,16 +23,11 @@ export default function BarraLateral({
         {conversas.length === 0 && <p className="vazio">Nenhuma conversa ainda.</p>}
         {conversas.map((c) => (
           <div key={c.id} className="item">
-            <NavLink to={`/conversa/${c.id}`} onClick={aoFechar}>{c.titulo}</NavLink>
+            <NavLink to={`/conversas/${c.id}`} onClick={aoFechar}>{c.titulo}</NavLink>
             <button onClick={() => aoApagar(c.id)} aria-label={`Apagar ${c.titulo}`}>🗑</button>
           </div>
         ))}
       </nav>
-
-      <div className="lateral-rodape">
-        <span>{usuario.nome}</span>
-        <button className="link" onClick={aoSair}>Sair</button>
-      </div>
     </aside>
   )
 }

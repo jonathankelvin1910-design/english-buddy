@@ -34,9 +34,10 @@ export default function AuthProvider({ children }) {
     setUsuario(r.usuario)
   }, [])
 
+  // Recarrega a página inicial: encerra a sessão e limpa da memória os dados do usuário
   const sair = useCallback(() => {
     tokenArmazenado.limpar()
-    setUsuario(null)
+    window.location.assign('/')
   }, [])
 
   const valor = useMemo(

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import buddy from '../assets/buddy.svg'
 import { mensagemErro } from '../api/api'
 import { useAuth } from '../auth/contexto'
@@ -13,7 +13,7 @@ export default function Login() {
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
 
-  if (usuario) return <Navigate to="/" replace />
+  if (usuario) return <Navigate to="/conversas" replace />
 
   const criando = modo === 'cadastrar'
 
@@ -85,6 +85,7 @@ export default function Login() {
         <button type="button" className="link" onClick={trocarModo}>
           {criando ? 'Já tenho conta' : 'Criar uma conta'}
         </button>
+        <div><Link to="/" className="link">Continuar sem entrar</Link></div>
       </div>
     </main>
   )

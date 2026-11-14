@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useMatch, useNavigate } from 'react-router-dom'
 import {
-  deleteConversa, getCenarios, getConversa, getConversas, mensagemErro, postConversa, postMensagem,
+  deleteConversa, getCenarios, getConversa, getConversas, mensagemErro,
+  patchPreferencias, postConversa, postMensagem,
 } from '../api/api'
 import buddy from '../assets/buddy.svg'
 import { useAuth } from '../auth/contexto'
@@ -11,8 +12,8 @@ import Preferencias from '../componentes/Preferencias'
 
 export default function Conversas() {
   const navigate = useNavigate()
-  const { usuario, sair } = useAuth()
-  const match = useMatch('/conversa/:id')
+  const { usuario, atualizarUsuario } = useAuth()
+  const match = useMatch('/conversas/:id')
   const idAtual = match ? Number(match.params.id) || null : null
 
   const [conversas, setConversas] = useState([])
@@ -42,12 +43,20 @@ export default function Conversas() {
       .catch((e) => {
         if (!ativo) return
         setErro(mensagemErro(e))
-        navigate('/')
+        navigate('/conversas')
       })
     return () => { ativo = false }
   }, [idAtual, navigate])
 
   const conversa = detalhe && detalhe.id === idAtual ? detalhe.dados : null
+
+  async function alterarPreferencia(campo, valor) {
+    try {
+      atualizarUsuario(await patchPreferencias({ [campo]: valor }))
+    } catch (e) {
+      setErro(mensagemErro(e))
+    }
+  }
 
   async function novaConversa(cenario) {
     setErro('')
@@ -55,7 +64,7 @@ export default function Conversas() {
       const nova = await postConversa(cenario)
       setConversas((lista) => [nova, ...lista])
       setMenuAberto(false)
-      navigate(`/conversa/${nova.id}`)
+      navigate(`/conversas/${nova.id}`)
     } catch (e) {
       setErro(mensagemErro(e))
     }
@@ -67,7 +76,7 @@ export default function Conversas() {
     try {
       await deleteConversa(id)
       setConversas((lista) => lista.filter((c) => c.id !== id))
-      if (id === idAtual) navigate('/')
+      if (id === idAtual) navigate('/conversas')
     } catch (e) {
       setErro(mensagemErro(e))
     }
@@ -100,21 +109,17 @@ export default function Conversas() {
         aberta={menuAberto}
         conversas={conversas}
         cenarios={cenarios}
-        usuario={usuario}
         aoNova={novaConversa}
         aoApagar={apagar}
-        aoSair={sair}
         aoFechar={() => setMenuAberto(false)}
       />
       {menuAberto && <div className="cortina" onClick={() => setMenuAberto(false)} />}
 
       <section className="principal">
-        <header className="topo">
-          <button className="menu-botao" onClick={() => setMenuAberto(true)} aria-label="Abrir conversas">☰</button>
-          <img src={buddy} alt="" />
-          <b>English <span className="marca">Buddy</span></b>
-          <Preferencias aoErro={setErro} />
-        </header>
+        <div className="barra-chat">
+          <button className="menu-botao" onClick={() => setMenuAberto(true)} aria-label="Abrir conversas">☰ Conversas</button>
+          <Preferencias nivel={usuario.nivel} legenda={usuario.legenda_idioma} aoAlterar={alterarPreferencia} />
+        </div>
 
         {erro && (
           <div className="erro faixa" role="alert">

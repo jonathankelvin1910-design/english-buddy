@@ -67,3 +67,8 @@ export const getConversa = (id) => api.get(`/conversas/${id}`).then((r) => r.dat
 export const deleteConversa = (id) => api.delete(`/conversas/${id}`)
 export const postMensagem = (id, texto) =>
   api.post(`/conversas/${id}/mensagens`, { texto }, { timeout: 120000 }).then((r) => r.data)
+
+export const postTraduzir = (texto, de, para) =>
+  api.post('/publico/traduzir', { texto, de, para }, { timeout: 60000 }).then((r) => r.data)
+export const postConversarPublico = (mensagens, nivel, cenario = null) =>
+  api.post('/publico/conversar', { mensagens, nivel, cenario }, { timeout: 120000 }).then((r) => r.data)
