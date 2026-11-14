@@ -5,7 +5,7 @@ from app.ia.base import ErroIA, ProvedorIA
 
 
 class Ollama(ProvedorIA):
-    def responder_json(self, mensagens: list[dict]) -> str:
+    def responder_json(self, mensagens: list[dict], temperatura: float = 0.7) -> str:
         if not config.ollama_model:
             raise ErroIA("OLLAMA_MODEL não configurado")
         try:
@@ -16,7 +16,7 @@ class Ollama(ProvedorIA):
                     "stream": False,
                     "format": "json",
                     "messages": mensagens,
-                    "options": {"temperature": 0.7},
+                    "options": {"temperature": temperatura},
                 },
                 timeout=180,
             )

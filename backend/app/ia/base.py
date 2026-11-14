@@ -7,5 +7,5 @@ class ErroIA(Exception):
 
 class ProvedorIA(ABC):
     @abstractmethod
-    def responder_json(self, mensagens: list[dict]) -> str:
+    def responder_json(self, mensagens: list[dict], temperatura: float = 0.7) -> str:
         """Recebe [{'role': ..., 'content': ...}] e devolve o texto JSON bruto da IA."""
