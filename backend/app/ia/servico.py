@@ -22,15 +22,7 @@ def _montar_mensagens(historico: list[dict], nivel: str, cenario: str | None) ->
     return mensagens
 
 
-def gerar_resposta(
-    historico: list[dict],
-    nivel: str = "A2",
-    cenario: str | None = None,
-    provedor: ProvedorIA | None = None,
-) -> RespostaIA:
-    """historico: [{'papel': 'user'|'assistant', 'texto': ..., 'traducao': ...}], do mais antigo ao mais novo."""
-    provedor = provedor or obter_provedor()
-    mensagens = _montar_mensagens(historico, nivel, cenario)
+def _chamar(provedor: ProvedorIA, mensagens: list[dict]) -> RespostaIA:
     for _ in range(2):
         bruto = provedor.responder_json(mensagens)
         try:
@@ -41,3 +33,30 @@ def gerar_resposta(
                 {"role": "user", "content": "That was not valid. Reply again ONLY with the JSON object described in the instructions."},
             ]
     raise ErroIA("A IA devolveu uma resposta inválida")
+
+
+def gerar_resposta(
+    historico: list[dict],
+    nivel: str = "A2",
+    cenario: str | None = None,
+    provedor: ProvedorIA | None = None,
+) -> RespostaIA:
+    """historico: [{'papel': 'user'|'assistant', 'texto': ..., 'traducao': ...}], do mais antigo ao mais novo."""
+    provedor = provedor or obter_provedor()
+    return _chamar(provedor, _montar_mensagens(historico, nivel, cenario))
+
+
+def gerar_abertura(
+    nivel: str,
+    cenario: str,
+    provedor: ProvedorIA | None = None,
+) -> RespostaIA:
+    """Primeira fala do Buddy num cenário, antes de o aluno escrever qualquer coisa."""
+    provedor = provedor or obter_provedor()
+    mensagens = [
+        {"role": "system", "content": montar_sistema(nivel, cenario, abertura=True)},
+        {"role": "user", "content": "(The learner has just joined. Begin the scene now.)"},
+    ]
+    resposta = _chamar(provedor, mensagens)
+    resposta.correcao = None  # não há nada a corrigir ainda
+    return resposta

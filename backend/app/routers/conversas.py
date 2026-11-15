@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.ia.base import ErroIA
-from app.ia.servico import gerar_resposta
+from app.ia.servico import gerar_abertura, gerar_resposta
 from app.models import Conversa, Frase, Mensagem, Usuario
 from app.schemas_conversas import (
     CENARIOS,
@@ -118,3 +118,31 @@ def enviar(
     db.refresh(msg_usuario)
     db.refresh(msg_ia)
     return {"usuario": msg_usuario, "assistente": msg_ia}
+
+
+# Mesmo formato da mensagem do assistente que já é devolvida em POST /mensagens
+MensagemOut = TrocaOut.model_fields["assistente"].annotation
+
+
+@router.post("/conversas/{conversa_id}/abertura", response_model=MensagemOut, status_code=201)
+def abrir(conversa_id: int, usuario: Usuario = Depends(usuario_atual), db: Session = Depends(get_db)):
+    """O Buddy puxa assunto: só em conversa de cenário que ainda não tem mensagens."""
+    conversa = _conversa_do_usuario(db, conversa_id, usuario)
+    if not conversa.cenario:
+        raise HTTPException(400, "Só conversas de cenário têm abertura")
+    ja_tem = db.scalar(select(func.count(Mensagem.id)).where(Mensagem.conversa_id == conversa.id))
+    if ja_tem:
+        raise HTTPException(409, "A conversa já começou")
+
+    try:
+        resposta = gerar_abertura(usuario.nivel, conversa.cenario)
+    except ErroIA:
+        raise HTTPException(502, "A IA não respondeu agora. Tente de novo.")
+
+    msg = Mensagem(conversa_id=conversa.id, papel="assistant", texto=resposta.en, traducao=resposta.pt)
+    msg.frases = [Frase(ordem=i, en=f.en, pt=f.pt) for i, f in enumerate(resposta.frases)]
+    db.add(msg)
+    conversa.atualizado_em = func.now()
+    db.commit()
+    db.refresh(msg)
+    return msg

@@ -211,3 +211,40 @@ def test_vaga_e_devolvida_mesmo_com_erro(monkeypatch):
     for _ in range(5):
         assert cliente.post("/publico/traduzir", json={"texto": "oi", "para": "en"}).status_code == 502
     assert cliente.post("/publico/traduzir", json={"texto": "oi", "para": "en"}).status_code == 200
+
+
+ABERTURA_OK = json.dumps({
+    "correcao": {"original": "x", "corrigida": "y", "explicacao": "z"},
+    "en": "Welcome! Please, have a seat. Can you tell me your name?",
+    "pt": "Bem-vindo! Sente-se, por favor. Pode me dizer seu nome?",
+    "frases": [{"en": "Please, have a seat", "pt": "Sente-se, por favor"}],
+})
+
+
+def test_abertura_ok(monkeypatch):
+    f = usar(monkeypatch, Falso([ABERTURA_OK]))
+    r = cliente.post("/publico/abertura", json={"nivel": "B1", "cenario": "Job interview"})
+    assert r.status_code == 200
+    j = r.json()
+    assert j["en"].startswith("Welcome") and j["correcao"] is None and len(j["frases"]) == 1
+    sistema = f.chamadas[0][0][0]["content"]
+    assert "interviewer" in sistema and "has not written anything yet" in sistema
+    assert [m["role"] for m in f.chamadas[0][0]] == ["system", "user"]
+
+
+@pytest.mark.parametrize("corpo", [{"nivel": "A2"}, {"cenario": "Hacking"}, {"cenario": None}, {"cenario": "At the doctor", "nivel": "Z9"}])
+def test_abertura_validacao(monkeypatch, corpo):
+    f = usar(monkeypatch, Falso([ABERTURA_OK]))
+    assert cliente.post("/publico/abertura", json=corpo).status_code == 422
+    assert f.chamadas == []
+
+
+def test_abertura_ia_fora_do_ar_da_502(monkeypatch):
+    usar(monkeypatch, Falso([ErroIA("caiu")]))
+    assert cliente.post("/publico/abertura", json={"cenario": "At the doctor"}).status_code == 502
+
+
+def test_abertura_tem_limite(monkeypatch):
+    usar(monkeypatch, Falso([ABERTURA_OK] * 11))
+    codigos = [cliente.post("/publico/abertura", json={"cenario": "At the doctor"}).status_code for _ in range(11)]
+    assert codigos[:10] == [200] * 10 and codigos[10] == 429

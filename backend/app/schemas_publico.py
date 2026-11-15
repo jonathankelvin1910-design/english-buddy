@@ -48,3 +48,15 @@ class ConversaPublicaIn(BaseModel):
         if len(ultima.texto) > 500:
             raise ValueError("A mensagem pode ter no máximo 500 caracteres")
         return self
+
+
+class AberturaPublicaIn(BaseModel):
+    nivel: Nivel = "A2"
+    cenario: str
+
+    @field_validator("cenario")
+    @classmethod
+    def cenario_valido(cls, v):
+        if v not in CENARIOS:
+            raise ValueError("Cenário inválido")
+        return v

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMatch, useNavigate } from 'react-router-dom'
 import {
   deleteConversa, getCenarios, getConversa, getConversas, mensagemErro,
-  patchPreferencias, postConversa, postMensagem,
+  patchPreferencias, postAbertura, postConversa, postMensagem,
 } from '../api/api'
 import buddy from '../assets/buddy.svg'
 import { useAuth } from '../auth/contexto'
@@ -22,6 +22,7 @@ export default function Conversas() {
   const [pendente, setPendente] = useState(null)
   const [erro, setErro] = useState('')
   const [menuAberto, setMenuAberto] = useState(false)
+  const [abrindoId, setAbrindoId] = useState(null)
 
   useEffect(() => {
     let ativo = true
@@ -65,8 +66,24 @@ export default function Conversas() {
       setConversas((lista) => [nova, ...lista])
       setMenuAberto(false)
       navigate(`/conversas/${nova.id}`)
+      if (cenario) abrir(nova.id)
     } catch (e) {
       setErro(mensagemErro(e))
+    }
+  }
+
+  // O Buddy puxa assunto numa conversa de cenário recém-criada
+  async function abrir(id) {
+    setAbrindoId(id)
+    try {
+      await postAbertura(id)
+      const dados = await getConversa(id)
+      setDetalhe((d) => (d && d.id !== id ? d : { id, dados }))
+      setConversas(await getConversas())
+    } catch (e) {
+      setErro(mensagemErro(e))
+    } finally {
+      setAbrindoId((atual) => (atual === id ? null : atual))
     }
   }
 
@@ -129,7 +146,7 @@ export default function Conversas() {
         )}
 
         {conversa ? (
-          <Chat conversa={conversa} legenda={usuario.legenda_idioma} pendente={pendente} aoEnviar={enviar} />
+          <Chat conversa={conversa} legenda={usuario.legenda_idioma} pendente={pendente} abrindo={abrindoId !== null && abrindoId === idAtual} aoEnviar={enviar} />
         ) : (
           <div className="vazio-principal">
             <img src={buddy} alt="" width={160} />

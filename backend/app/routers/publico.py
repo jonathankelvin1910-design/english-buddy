@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException, Request
 
 from app.ia.base import ErroIA
 from app.ia.resposta import RespostaIA
-from app.ia.servico import gerar_resposta
+from app.ia.servico import gerar_abertura, gerar_resposta
 from app.ia.traducao import TraducaoIA, traduzir_texto
 from app.limites import LimitePorJanela, vaga_ia
-from app.schemas_publico import ConversaPublicaIn, TraducaoIn
+from app.schemas_publico import AberturaPublicaIn, ConversaPublicaIn, TraducaoIn
 
 router = APIRouter(prefix="/publico", tags=["publico"])
 
@@ -39,5 +39,15 @@ def conversar(dados: ConversaPublicaIn, request: Request):
     try:
         with vaga_ia():
             return gerar_resposta(historico, dados.nivel, dados.cenario)
+    except ErroIA:
+        raise HTTPException(502, ERRO_IA)
+
+
+@router.post("/abertura", response_model=RespostaIA)
+def abertura(dados: AberturaPublicaIn, request: Request):
+    limite_conversa.verificar(_ip(request))
+    try:
+        with vaga_ia():
+            return gerar_abertura(dados.nivel, dados.cenario)
     except ErroIA:
         raise HTTPException(502, ERRO_IA)

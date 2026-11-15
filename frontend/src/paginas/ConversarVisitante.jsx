@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getCenarios, mensagemErro, postConversarPublico } from '../api/api'
+import { getCenarios, mensagemErro, postAberturaPublica, postConversarPublico } from '../api/api'
 import Chat from '../componentes/Chat'
 import Preferencias from '../componentes/Preferencias'
 import { ler, salvar } from '../utils/armazenamento'
@@ -14,7 +14,9 @@ export default function ConversarVisitante() {
   const [cenarios, setCenarios] = useState([])
   const [nivel, setNivel] = useState(() => ler('eb_nivel', 'A2', NIVEIS))
   const [legenda, setLegenda] = useState(() => ler('eb_legenda', 'ambos', VALORES_LEGENDA))
+  const [abrindo, setAbrindo] = useState(false)
   const proximoId = useRef(1)
+  const geracao = useRef(0) // muda a cada recomeço, para ignorar respostas antigas
 
   useEffect(() => {
     let ativo = true
@@ -34,13 +36,29 @@ export default function ConversarVisitante() {
     }
   }
 
-  function mudarCenario(valor) {
+  async function mudarCenario(valor) {
+    const minha = ++geracao.current
     setCenario(valor)
     setMensagens([])
     setErro('')
+    setAbrindo(false)
+    if (!valor) return
+    setAbrindo(true)
+    try {
+      const r = await postAberturaPublica(nivel, valor)
+      if (minha !== geracao.current) return
+      setMensagens([
+        { id: proximoId.current++, papel: 'assistant', texto: r.en, traducao: r.pt, correcao: null, frases: r.frases },
+      ])
+    } catch (e) {
+      if (minha === geracao.current) setErro(mensagemErro(e))
+    } finally {
+      if (minha === geracao.current) setAbrindo(false)
+    }
   }
 
   async function enviar(texto) {
+    const minha = geracao.current
     setErro('')
     setPendente(texto)
     const historico = [...mensagens, { papel: 'user', texto }]
@@ -48,6 +66,7 @@ export default function ConversarVisitante() {
       .map((m) => ({ papel: m.papel, texto: m.texto, traducao: m.traducao ?? null }))
     try {
       const r = await postConversarPublico(historico, nivel, cenario || null)
+      if (minha !== geracao.current) return false
       const idUsuario = proximoId.current++
       const idBuddy = proximoId.current++
       setMensagens((lista) => [
@@ -87,7 +106,7 @@ export default function ConversarVisitante() {
         </div>
       )}
 
-      <Chat conversa={{ mensagens }} legenda={legenda} pendente={pendente} aoEnviar={enviar} />
+      <Chat conversa={{ mensagens }} legenda={legenda} pendente={pendente} abrindo={abrindo} aoEnviar={enviar} />
     </div>
   )
 }
