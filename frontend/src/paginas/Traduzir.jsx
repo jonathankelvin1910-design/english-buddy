@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { mensagemErro, postTraduzir } from '../api/api'
+import BotaoOuvir from '../componentes/BotaoOuvir'
 
 const NOMES = { pt: 'Português', en: 'Inglês' }
 const EXEMPLOS = [
@@ -118,7 +119,7 @@ export default function Traduzir() {
                 <p className="nota">O texto já estava em {NOMES[resultado.destino].toLowerCase()}. Use ⇄ para trocar o destino.</p>
               )}
               <div className="painel-rodape">
-                <span />
+                <BotaoOuvir texto={resultado.traducao} idioma={resultado.destino} />
                 <button className="nav-btn" onClick={copiar}>{copiado ? 'Copiado ✓' : 'Copiar'}</button>
               </div>
             </>

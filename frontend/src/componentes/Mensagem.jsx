@@ -1,4 +1,8 @@
+import BotaoOuvir from './BotaoOuvir'
+import { usePrefsVoz } from '../utils/voz'
+
 export default function Mensagem({ m, legenda }) {
+  const [prefs] = usePrefsVoz()
   if (m.papel === 'user') {
     return (
       <div className="linha eu">
@@ -21,6 +25,7 @@ export default function Mensagem({ m, legenda }) {
         {verEn && <span className="en">{m.texto}</span>}
         {verPt && <span className="pt">{m.traducao}</span>}
       </div>
+      <BotaoOuvir texto={prefs.idioma === 'pt' && m.traducao ? m.traducao : m.texto} />
     </div>
   )
 }

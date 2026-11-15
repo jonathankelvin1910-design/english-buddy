@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import CartaoFrases from './CartaoFrases'
 import Mensagem from './Mensagem'
+import BotaoMic from './BotaoMic'
+import VozControles from './VozControles'
 
 export default function Chat({ conversa, legenda, pendente, aoEnviar }) {
   const [texto, setTexto] = useState('')
@@ -41,6 +43,7 @@ export default function Chat({ conversa, legenda, pendente, aoEnviar }) {
         <div ref={fimRef} />
       </div>
 
+      <VozControles />
       <form className="entrada" onSubmit={enviar}>
         <input
           value={texto}
@@ -50,6 +53,7 @@ export default function Chat({ conversa, legenda, pendente, aoEnviar }) {
           aria-label="Sua mensagem"
           disabled={Boolean(pendente)}
         />
+        <BotaoMic aoTexto={setTexto} desativado={Boolean(pendente)} />
         <button className="botao" disabled={!texto.trim() || Boolean(pendente)}>Enviar</button>
       </form>
     </div>
