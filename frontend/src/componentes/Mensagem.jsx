@@ -21,11 +21,13 @@ export default function Mensagem({ m, legenda }) {
   const verEn = legenda !== 'pt' || !m.traducao
   return (
     <div className="linha ia">
-      <div className="bolha ia">
-        {verEn && <span className="en">{m.texto}</span>}
-        {verPt && <span className="pt">{m.traducao}</span>}
+      <div className="ia-linha">
+        <div className="bolha ia">
+          {verEn && <span className="en">{m.texto}</span>}
+          {verPt && <span className="pt">{m.traducao}</span>}
+        </div>
+        <BotaoOuvir texto={prefs.idioma === 'pt' && m.traducao ? m.traducao : m.texto} />
       </div>
-      <BotaoOuvir texto={prefs.idioma === 'pt' && m.traducao ? m.traducao : m.texto} />
     </div>
   )
 }
