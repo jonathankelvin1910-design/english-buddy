@@ -129,8 +129,8 @@ export default function Traduzir() {
 
   return (
     <main className="traduzir">
-      <h1>Traduza qualquer frase</h1>
-      <p className="sub">Português ⇄ inglês, sem precisar de conta.</p>
+      <h1>Tradução</h1>
+      <p className="sub">Português ⇄ inglês</p>
 
       <div className="idiomas">
         <select className="seletor" aria-label="Idioma de origem" value={de} onChange={(e) => mudarDe(e.target.value)}>

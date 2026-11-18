@@ -19,6 +19,7 @@ const LEGENDAS = [
   ['pt', 'PT'],
   ['nenhuma', 'Sem legenda'],
 ]
+const GRACA_MS = 1500 // pausa tolerada no meio da frase antes de o Buddy responder
 const MAX_SILENCIOS = 3 // quantas vezes seguidas o microfone pode ouvir silêncio antes de pausar
 
 const ROTULOS = {
@@ -45,6 +46,8 @@ export default function Fluente() {
   const recRef = useRef(null)
   const mensagensRef = useRef([])
   const silenciosRef = useRef(0)
+  const acumuladoRef = useRef('') // o que você já falou e ainda não foi enviado
+  const gracaRef = useRef(null)
   const velRef = useRef(prefs.vel)
   const fimRef = useRef(null)
 
@@ -55,6 +58,7 @@ export default function Fluente() {
   useEffect(
     () => () => {
       geracaoRef.current += 1
+      clearTimeout(gracaRef.current)
       recRef.current?.abort()
       pararFala()
     },
@@ -71,6 +75,8 @@ export default function Fluente() {
   }
 
   function parar() {
+    clearTimeout(gracaRef.current)
+    acumuladoRef.current = ''
     ativoRef.current = false
     geracaoRef.current += 1
     recRef.current?.abort()
@@ -118,6 +124,32 @@ export default function Fluente() {
     turno(historico)
   }
 
+  // Junta pedaços de fala; o segundo trecho só é somado se vier dentro do tempo de tolerância
+  function juntar(antes, depois) {
+    return [antes, depois].filter(Boolean).join(' ').trim()
+  }
+
+  function reouvir(minha) {
+    setTimeout(() => {
+      if (minha === geracaoRef.current && ativoRef.current) ouvir()
+    }, 150)
+  }
+
+  // Espera um tempinho: se você continuar falando, o envio é cancelado e a frase cresce
+  function agendarEnvio(minha) {
+    clearTimeout(gracaRef.current)
+    gracaRef.current = setTimeout(() => {
+      if (minha !== geracaoRef.current || !ativoRef.current) return
+      const fala = acumuladoRef.current
+      acumuladoRef.current = ''
+      geracaoRef.current += 1
+      recRef.current?.abort()
+      recRef.current = null
+      setParcial('')
+      if (fala) enviar(fala.slice(0, 500))
+    }, GRACA_MS)
+  }
+
   function ouvir() {
     const minha = geracaoRef.current
     const rec = new Reconhecimento()
@@ -127,15 +159,15 @@ export default function Fluente() {
     let final = ''
     let falhou = ''
     rec.onresult = (e) => {
+      clearTimeout(gracaRef.current) // voltou a falar: não envia ainda
       final = Array.from(e.results).map((r) => r[0].transcript).join(' ').trim()
-      setParcial(final)
+      setParcial(juntar(acumuladoRef.current, final))
     }
     rec.onerror = (e) => {
       if (e.error !== 'no-speech' && e.error !== 'aborted') falhou = e.error
     }
     rec.onend = () => {
       if (minha !== geracaoRef.current || !ativoRef.current) return
-      setParcial('')
       if (falhou) {
         setErro(
           falhou === 'not-allowed' || falhou === 'service-not-allowed'
@@ -144,15 +176,18 @@ export default function Fluente() {
         )
         parar()
       } else if (final) {
-        enviar(final.slice(0, 500))
+        acumuladoRef.current = juntar(acumuladoRef.current, final)
+        setParcial(acumuladoRef.current)
+        agendarEnvio(minha)
+        reouvir(minha)
+      } else if (acumuladoRef.current) {
+        reouvir(minha) // já tem fala esperando o fim da pausa
       } else if (silenciosRef.current + 1 >= MAX_SILENCIOS) {
         setErro('Não ouvi nada por um tempo, então pausei. Toque em Começar para continuar.')
         parar()
       } else {
         silenciosRef.current += 1
-        setTimeout(() => {
-          if (minha === geracaoRef.current && ativoRef.current) ouvir()
-        }, 250)
+        reouvir(minha)
       }
     }
     recRef.current = rec
@@ -200,6 +235,8 @@ export default function Fluente() {
     if (!t || fase === 'pensando') return
     setTexto('')
     setErro('')
+    clearTimeout(gracaRef.current)
+    acumuladoRef.current = ''
     recRef.current?.abort()
     recRef.current = null
     pararFala()
