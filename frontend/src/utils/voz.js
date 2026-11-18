@@ -40,6 +40,14 @@ export function pararFala() {
   if (suportaFala) window.speechSynthesis.cancel()
 }
 
+// O Safari só deixa o site falar depois de um clique: chame isto dentro do clique que inicia a conversa
+export function liberarFala() {
+  if (!suportaFala) return
+  const u = new SpeechSynthesisUtterance('')
+  u.volume = 0
+  window.speechSynthesis.speak(u)
+}
+
 export function falar(texto, idioma, vel, aoFim) {
   if (!suportaFala) return
   window.speechSynthesis.cancel()

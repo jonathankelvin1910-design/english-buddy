@@ -60,3 +60,17 @@ class AberturaPublicaIn(BaseModel):
         if v not in CENARIOS:
             raise ValueError("Cenário inválido")
         return v
+
+
+class ConversaFluenteIn(BaseModel):
+    mensagens: list[MensagemPublica] = Field(min_length=1, max_length=12)
+
+    @model_validator(mode="after")
+    def ultima_e_do_usuario(self):
+        ultima = self.mensagens[-1]
+        if ultima.papel != "user":
+            raise ValueError("A última mensagem precisa ser do usuário")
+        if len(ultima.texto) > 500:
+            raise ValueError("A mensagem pode ter no máximo 500 caracteres")
+        return self
+

@@ -2,14 +2,16 @@ import json
 
 from app.ia import obter_provedor
 from app.ia.base import ErroIA, ProvedorIA
-from app.ia.prompt import montar_sistema
+from app.ia.prompt import montar_sistema, montar_sistema_fluente
 from app.ia.resposta import RespostaIA, interpretar
 
 MAX_CONTEXTO = 12
 
 
-def _montar_mensagens(historico: list[dict], nivel: str, cenario: str | None) -> list[dict]:
-    mensagens = [{"role": "system", "content": montar_sistema(nivel, cenario)}]
+def _montar_mensagens(
+    historico: list[dict], nivel: str, cenario: str | None, sistema: str | None = None
+) -> list[dict]:
+    mensagens = [{"role": "system", "content": sistema or montar_sistema(nivel, cenario)}]
     for m in historico[-MAX_CONTEXTO:]:
         if m["papel"] == "assistant":
             corpo = {"en": m["texto"]}
@@ -60,3 +62,13 @@ def gerar_abertura(
     resposta = _chamar(provedor, mensagens)
     resposta.correcao = None  # não há nada a corrigir ainda
     return resposta
+
+
+def gerar_resposta_fluente(historico: list[dict], provedor: ProvedorIA | None = None) -> RespostaIA:
+    """Bate-papo por voz: só a fala em inglês e a legenda em português, sem correção nem frases."""
+    provedor = provedor or obter_provedor()
+    resposta = _chamar(provedor, _montar_mensagens(historico, "C1", None, sistema=montar_sistema_fluente()))
+    resposta.correcao = None
+    resposta.frases = []
+    return resposta
+

@@ -19,6 +19,7 @@ export default function Cabecalho() {
       <nav className="abas" aria-label="Principal">
         <Link to="/" className={pathname === '/' ? 'on' : ''}>Traduzir</Link>
         <Link to={destinoConversa} className={naConversa ? 'on' : ''}>Conversar</Link>
+        <Link to="/fluente" className={pathname === '/fluente' ? 'on' : ''}>Fluente</Link>
         <Link to="/vocabulario" className={pathname === '/vocabulario' ? 'on' : ''}>Vocabulário</Link>
       </nav>
 

@@ -248,3 +248,53 @@ def test_abertura_tem_limite(monkeypatch):
     usar(monkeypatch, Falso([ABERTURA_OK] * 11))
     codigos = [cliente.post("/publico/abertura", json={"cenario": "At the doctor"}).status_code for _ in range(11)]
     assert codigos[:10] == [200] * 10 and codigos[10] == 429
+
+
+FLUENTE_OK = json.dumps({"en": "Oh nice! What kind of music do you like?", "pt": "Que legal! Que tipo de música você gosta?"})
+
+
+def test_fluente_ok(monkeypatch):
+    monkeypatch.setattr(publico, "limite_fluente", limites.LimitePorJanela(20, 60))
+    f = usar(monkeypatch, Falso([FLUENTE_OK]))
+    corpo = {"mensagens": [{"papel": "user", "texto": "Hello!"}]}
+    r = cliente.post("/publico/fluente", json=corpo)
+    assert r.status_code == 200
+    j = r.json()
+    assert j["en"].startswith("Oh nice") and j["pt"] and j["correcao"] is None and j["frases"] == []
+    sistema = f.chamadas[0][0][0]["content"]
+    assert "voice conversation" in sistema and "do not correct" in sistema.lower() and "correcao" not in sistema
+
+
+def test_fluente_mantem_historico(monkeypatch):
+    monkeypatch.setattr(publico, "limite_fluente", limites.LimitePorJanela(20, 60))
+    f = usar(monkeypatch, Falso([FLUENTE_OK]))
+    corpo = {"mensagens": [
+        {"papel": "user", "texto": "Hello!"},
+        {"papel": "assistant", "texto": "Hey there!", "traducao": "Oi!"},
+        {"papel": "user", "texto": "I like jazz"},
+    ]}
+    assert cliente.post("/publico/fluente", json=corpo).status_code == 200
+    papeis = [m["role"] for m in f.chamadas[0][0]]
+    assert papeis == ["system", "user", "assistant", "user"]
+
+
+@pytest.mark.parametrize("corpo", [
+    {"mensagens": []},
+    {"mensagens": [{"papel": "assistant", "texto": "Hi"}]},
+    {"mensagens": [{"papel": "user", "texto": "x" * 501}]},
+    {},
+])
+def test_fluente_validacao(monkeypatch, corpo):
+    f = usar(monkeypatch, Falso([FLUENTE_OK]))
+    assert cliente.post("/publico/fluente", json=corpo).status_code == 422
+    assert f.chamadas == []
+
+
+def test_fluente_ia_fora_do_ar_e_limite(monkeypatch):
+    monkeypatch.setattr(publico, "limite_fluente", limites.LimitePorJanela(2, 60))
+    usar(monkeypatch, Falso([ErroIA("caiu"), FLUENTE_OK, FLUENTE_OK]))
+    corpo = {"mensagens": [{"papel": "user", "texto": "Hello!"}]}
+    assert cliente.post("/publico/fluente", json=corpo).status_code == 502
+    assert cliente.post("/publico/fluente", json=corpo).status_code == 200
+    assert cliente.post("/publico/fluente", json=corpo).status_code == 429
+
