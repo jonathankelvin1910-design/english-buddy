@@ -73,6 +73,12 @@ export const postAbertura = (id) =>
 export const postAberturaPublica = (nivel, cenario) =>
   api.post('/publico/abertura', { nivel, cenario }, { timeout: 120000 }).then((r) => r.data)
 
+export const getVocabulario = () => api.get('/vocabulario').then((r) => r.data)
+export const getRevisao = () => api.get('/vocabulario/revisao').then((r) => r.data)
+export const postVocabulario = (en, pt) => api.post('/vocabulario', { en, pt }).then((r) => r.data)
+export const deleteVocabulario = (id) => api.delete(`/vocabulario/${id}`)
+export const postRevisar = (id, sabia) => api.post(`/vocabulario/${id}/revisar`, { sabia }).then((r) => r.data)
+
 export const postTraduzir = (texto, de, para) =>
   api.post('/publico/traduzir', { texto, de, para }, { timeout: 60000 }).then((r) => r.data)
 export const postConversarPublico = (mensagens, nivel, cenario = null) =>

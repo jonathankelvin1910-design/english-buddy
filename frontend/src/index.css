@@ -196,3 +196,39 @@ img { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
 .ia-linha { display: flex; align-items: center; gap: 8px; width: 100%; }
 .ia-linha .bolha { flex: 0 1 auto; max-width: min(80%, 640px); }
 .ia-linha .ouvir { align-self: center; width: 32px; height: 32px; font-size: 14px; }
+
+/* Vocabulário */
+.salvar { flex: none; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--borda); background: #fff; border-radius: 999px; width: 34px; height: 34px; font-size: 17px; line-height: 1; cursor: pointer; color: var(--texto-suave); text-decoration: none; }
+.salvar.on { color: #F59E0B; border-color: #F9D58B; background: #FFF8E6; }
+.acoes { display: inline-flex; gap: 8px; align-items: center; position: relative; }
+.frase-acoes { display: flex; justify-content: center; gap: 8px; margin-top: 8px; position: relative; }
+.vocab { width: 100%; max-width: 760px; margin: 0 auto; padding: 28px 20px 40px; }
+.vocab h1 { margin: 0; font-size: 30px; text-align: center; }
+.vocab .sub { color: var(--texto-suave); text-align: center; margin: 4px 0 16px; }
+.vocab-vazio { text-align: center; padding: 28px; margin-top: 20px; }
+.vocab-resumo { display: flex; align-items: center; gap: 28px; padding: 16px 22px; flex-wrap: wrap; }
+.vocab-resumo div { display: flex; flex-direction: column; }
+.vocab-resumo b { font-size: 26px; }
+.vocab-resumo span { font-size: 13px; color: var(--texto-suave); }
+.vocab-resumo .botao { margin-left: auto; }
+.vocab-lista { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.vocab-lista li { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px solid var(--borda); border-radius: 16px; padding: 10px 14px; }
+.vocab-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.vocab-texto span { color: var(--texto-suave); font-size: 14px; }
+.vocab-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.vocab-meta small { color: var(--texto-suave); font-size: 12px; }
+.caixa { display: inline-flex; gap: 3px; }
+.caixa i { width: 8px; height: 8px; border-radius: 50%; background: var(--borda); }
+.caixa i.on { background: var(--primaria); }
+.lixo { border: none; background: none; cursor: pointer; opacity: .6; font-size: 16px; }
+.vocab-topo { display: flex; justify-content: space-between; align-items: center; color: var(--texto-suave); margin-bottom: 14px; }
+.revisao { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 32px 24px; }
+.revisao h2 { margin: 0; }
+.revisao-en { font-size: 30px; font-weight: 800; }
+.revisao-pt { font-size: 22px; color: var(--primaria); font-weight: 700; margin-top: 6px; }
+.revisao-dica { color: var(--texto-suave); margin: 0; font-size: 14px; }
+.revisao-botoes { display: flex; gap: 12px; }
+@media (max-width: 800px) {
+  .vocab-resumo .botao { margin-left: 0; width: 100%; }
+  .vocab-lista li { flex-wrap: wrap; }
+}

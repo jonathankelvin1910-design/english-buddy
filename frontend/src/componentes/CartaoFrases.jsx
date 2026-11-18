@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import BotaoOuvir from './BotaoOuvir'
+import BotaoSalvar from './BotaoSalvar'
 
 export default function CartaoFrases({ frases }) {
   const [i, setI] = useState(0)
@@ -11,6 +13,10 @@ export default function CartaoFrases({ frases }) {
       <div className="frase">
         <div className="en">{frase.en}</div>
         <div className="pt">{frase.pt}</div>
+        <div className="frase-acoes">
+          <BotaoOuvir texto={frase.en} idioma="en" />
+          <BotaoSalvar key={frase.en} en={frase.en} pt={frase.pt} />
+        </div>
       </div>
       <div className="frases-nav">
         <button className="nav-btn" disabled={i === 0} onClick={() => setI(i - 1)}>← Anterior</button>

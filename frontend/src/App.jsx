@@ -5,6 +5,7 @@ import ConversarVisitante from './paginas/ConversarVisitante'
 import Conversas from './paginas/Conversas'
 import Login from './paginas/Login'
 import Traduzir from './paginas/Traduzir'
+import Vocabulario from './paginas/Vocabulario'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route index element={<Traduzir />} />
         <Route path="conversar" element={<ConversarVisitante />} />
         <Route path="conversas/:id?" element={<RotaProtegida><Conversas /></RotaProtegida>} />
+        <Route path="vocabulario" element={<RotaProtegida><Vocabulario /></RotaProtegida>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

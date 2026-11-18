@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, Text, FetchedValue, func
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Numeric, String, Text, FetchedValue, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -66,3 +66,21 @@ class Frase(Base):
     pt: Mapped[str] = mapped_column(String(200))
 
     mensagem: Mapped["Mensagem"] = relationship(back_populates="frases")
+
+
+class Vocabulario(Base):
+    """Frase salva pelo aluno para revisar com repetição espaçada (caixas de Leitner, 1 a 5)."""
+
+    __tablename__ = "vocabulario"
+    __table_args__ = (UniqueConstraint("usuario_id", "en", name="uq_vocabulario_usuario_en"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"))
+    en: Mapped[str] = mapped_column(String(200))
+    pt: Mapped[str] = mapped_column(String(200))
+    caixa: Mapped[int] = mapped_column(default=1)
+    proxima_revisao: Mapped[date] = mapped_column(Date)
+    acertos: Mapped[int] = mapped_column(default=0)
+    erros: Mapped[int] = mapped_column(default=0)
+    criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { mensagemErro, postTraduzir } from '../api/api'
 import BotaoOuvir from '../componentes/BotaoOuvir'
+import BotaoSalvar from '../componentes/BotaoSalvar'
 
 const NOMES = { pt: 'Português', en: 'Inglês' }
 const EXEMPLOS = [
@@ -46,7 +47,7 @@ export default function Traduzir() {
     setCarregando(true)
     try {
       const r = await postTraduzir(t, de, para)
-      setResultado({ ...r, detectado: de === 'auto', destino: para })
+      setResultado({ ...r, detectado: de === 'auto', destino: para, original: t })
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
@@ -119,7 +120,16 @@ export default function Traduzir() {
                 <p className="nota">O texto já estava em {NOMES[resultado.destino].toLowerCase()}. Use ⇄ para trocar o destino.</p>
               )}
               <div className="painel-rodape">
-                <BotaoOuvir texto={resultado.traducao} idioma={resultado.destino} />
+                <span className="acoes">
+                  <BotaoOuvir texto={resultado.traducao} idioma={resultado.destino} />
+                  {resultado.idioma_origem !== resultado.destino && resultado.idioma_origem !== 'outro' && (
+                    <BotaoSalvar
+                      key={resultado.traducao}
+                      en={resultado.destino === 'en' ? resultado.traducao : resultado.original}
+                      pt={resultado.destino === 'en' ? resultado.original : resultado.traducao}
+                    />
+                  )}
+                </span>
                 <button className="nav-btn" onClick={copiar}>{copiado ? 'Copiado ✓' : 'Copiar'}</button>
               </div>
             </>
