@@ -232,3 +232,10 @@ img { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
   .vocab-resumo .botao { margin-left: 0; width: 100%; }
   .vocab-lista li { flex-wrap: wrap; }
 }
+
+/* Tradução automática */
+.auto-opcao { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: var(--texto-suave); margin: -4px 0 14px; cursor: pointer; }
+.auto-opcao input { width: 16px; height: 16px; accent-color: var(--primaria); }
+
+.resultado.desatualizado .saida { opacity: .4; }
+.atualizando { display: inline-block; font-size: 12px; font-weight: 700; color: var(--texto-suave); margin-bottom: 6px; }

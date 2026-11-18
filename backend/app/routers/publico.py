@@ -10,7 +10,7 @@ from app.schemas_publico import AberturaPublicaIn, ConversaPublicaIn, TraducaoIn
 router = APIRouter(prefix="/publico", tags=["publico"])
 
 # Por IP. Atrás de um proxy, o IP real precisa ser configurado no servidor (não confiamos em cabeçalhos do cliente)
-limite_traducao = LimitePorJanela(maximo=20, janela=60)
+limite_traducao = LimitePorJanela(maximo=40, janela=60)  # a tradução automática faz várias chamadas
 limite_conversa = LimitePorJanela(maximo=10, janela=60)
 
 ERRO_IA = "A IA não respondeu agora. Tente de novo."

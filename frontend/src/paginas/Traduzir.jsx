@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { mensagemErro, postTraduzir } from '../api/api'
 import BotaoOuvir from '../componentes/BotaoOuvir'
 import BotaoSalvar from '../componentes/BotaoSalvar'
+import { ler, salvar } from '../utils/armazenamento'
 
 const NOMES = { pt: 'Português', en: 'Inglês' }
 const EXEMPLOS = [
@@ -10,6 +11,8 @@ const EXEMPLOS = [
   'Eu gostaria de reservar uma mesa para duas pessoas.',
 ]
 const MAXIMO = 1000
+const ATRASO = 900 // ms sem digitar antes de traduzir sozinho
+const MIN_AUTO = 2 // letras mínimas para a tradução automática
 
 export default function Traduzir() {
   const [texto, setTexto] = useState('')
@@ -19,40 +22,92 @@ export default function Traduzir() {
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
   const [copiado, setCopiado] = useState(false)
+  const [automatico, setAutomatico] = useState(() => ler('eb_traduz_auto', 'sim', ['sim', 'nao']) === 'sim')
+  const timerRef = useRef(null)
+  const abortRef = useRef(null)
+  const cacheRef = useRef(new Map())
+
+  function alternarAutomatico(ligado) {
+    setAutomatico(ligado)
+    salvar('eb_traduz_auto', ligado ? 'sim' : 'nao')
+    if (!ligado) cancelar()
+  }
+
+  // Cancela o que estiver esperando ou em andamento
+  function cancelar() {
+    clearTimeout(timerRef.current)
+    abortRef.current?.abort()
+    setCarregando(false)
+  }
+
+  // Chamado a cada mudança de texto ou idioma: espera você parar de digitar
+  function agendar(t, d, p) {
+    cancelar()
+    const limpo = t.trim()
+    if (!limpo) {
+      setResultado(null)
+      setErro('')
+      return
+    }
+    if (!automatico || limpo.length < MIN_AUTO) return
+    timerRef.current = setTimeout(() => executar(limpo, d, p), ATRASO)
+  }
+
+  async function executar(t, d, p) {
+    const chave = `${d}|${p}|${t}`
+    const guardado = cacheRef.current.get(chave)
+    setErro('')
+    setCopiado(false)
+    if (guardado) {
+      setResultado({ ...guardado, detectado: d === 'auto', destino: p, original: t })
+      return
+    }
+    abortRef.current?.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    setCarregando(true)
+    try {
+      const r = await postTraduzir(t, d, p, ctrl.signal)
+      cacheRef.current.set(chave, r)
+      setResultado({ ...r, detectado: d === 'auto', destino: p, original: t })
+    } catch (e) {
+      if (ctrl.signal.aborted) return
+      setErro(mensagemErro(e))
+    } finally {
+      if (abortRef.current === ctrl) setCarregando(false)
+    }
+  }
+
+  function mudarIdiomas(novoDe, novoPara) {
+    setDe(novoDe)
+    setPara(novoPara)
+    agendar(texto, novoDe, novoPara)
+  }
 
   function mudarDe(valor) {
-    setDe(valor)
-    if (valor !== 'auto' && valor === para) setPara(valor === 'en' ? 'pt' : 'en')
+    mudarIdiomas(valor, valor !== 'auto' && valor === para ? (valor === 'en' ? 'pt' : 'en') : para)
   }
 
   function mudarPara(valor) {
-    setPara(valor)
-    if (valor === de) setDe('auto')
+    mudarIdiomas(valor === de ? 'auto' : de, valor)
   }
 
   function trocar() {
-    if (de === 'auto') {
-      setPara(para === 'en' ? 'pt' : 'en')
-    } else {
-      setDe(para)
-      setPara(de)
-    }
+    if (de === 'auto') mudarIdiomas(de, para === 'en' ? 'pt' : 'en')
+    else mudarIdiomas(para, de)
   }
 
-  async function traduzir() {
-    const t = texto.trim()
-    if (!t || carregando) return
-    setErro('')
-    setCopiado(false)
-    setCarregando(true)
-    try {
-      const r = await postTraduzir(t, de, para)
-      setResultado({ ...r, detectado: de === 'auto', destino: para, original: t })
-    } catch (e) {
-      setErro(mensagemErro(e))
-    } finally {
-      setCarregando(false)
-    }
+  function mudarTexto(valor) {
+    setTexto(valor)
+    agendar(valor, de, para)
+  }
+
+  // Botão ou Cmd/Ctrl + Enter: traduz na hora
+  function traduzir(t = texto) {
+    const limpo = t.trim()
+    if (!limpo) return
+    cancelar()
+    executar(limpo, de, para)
   }
 
   async function copiar() {
@@ -64,6 +119,9 @@ export default function Traduzir() {
       setErro('Não consegui copiar. Selecione o texto e copie manualmente.')
     }
   }
+
+  // O texto mudou depois da última tradução: o resultado na tela já está velho
+  const desatualizado = Boolean(resultado) && texto.trim() !== resultado.original
 
   function aoTeclar(e) {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') traduzir()
@@ -87,11 +145,16 @@ export default function Traduzir() {
         </select>
       </div>
 
+      <label className="auto-opcao">
+        <input type="checkbox" checked={automatico} onChange={(e) => alternarAutomatico(e.target.checked)} />
+        Traduzir enquanto digito
+      </label>
+
       <div className="paineis">
         <div className="cartao painel">
           <textarea
             value={texto}
-            onChange={(e) => setTexto(e.target.value)}
+            onChange={(e) => mudarTexto(e.target.value)}
             onKeyDown={aoTeclar}
             maxLength={MAXIMO}
             placeholder="Digite ou cole um texto…"
@@ -99,13 +162,13 @@ export default function Traduzir() {
           />
           <div className="painel-rodape">
             <span className="contador">{texto.length}/{MAXIMO}</span>
-            <button className="botao" onClick={traduzir} disabled={!texto.trim() || carregando}>
+            <button className="botao" onClick={() => traduzir()} disabled={!texto.trim() || carregando}>
               {carregando ? 'Traduzindo…' : 'Traduzir'}
             </button>
           </div>
         </div>
 
-        <div className="cartao painel resultado" aria-live="polite">
+        <div className={`cartao painel resultado${desatualizado ? ' desatualizado' : ''}`} aria-live="polite">
           {resultado ? (
             <>
               {resultado.detectado && (
@@ -114,6 +177,9 @@ export default function Traduzir() {
                     ? 'Idioma não reconhecido'
                     : `Detectado: ${NOMES[resultado.idioma_origem]}`}
                 </span>
+              )}
+              {desatualizado && (
+                <span className="atualizando">{automatico ? 'Atualizando…' : 'Texto alterado. Clique em Traduzir.'}</span>
               )}
               <p className="saida">{resultado.traducao}</p>
               {resultado.detectado && resultado.idioma_origem === resultado.destino && (
@@ -144,7 +210,7 @@ export default function Traduzir() {
       <div className="exemplos">
         <span>Experimente:</span>
         {EXEMPLOS.map((ex) => (
-          <button key={ex} className="exemplo" onClick={() => setTexto(ex)}>{ex}</button>
+          <button key={ex} className="exemplo" onClick={() => { setTexto(ex); traduzir(ex) }}>{ex}</button>
         ))}
       </div>
 

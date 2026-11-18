@@ -79,7 +79,7 @@ export const postVocabulario = (en, pt) => api.post('/vocabulario', { en, pt }).
 export const deleteVocabulario = (id) => api.delete(`/vocabulario/${id}`)
 export const postRevisar = (id, sabia) => api.post(`/vocabulario/${id}/revisar`, { sabia }).then((r) => r.data)
 
-export const postTraduzir = (texto, de, para) =>
-  api.post('/publico/traduzir', { texto, de, para }, { timeout: 60000 }).then((r) => r.data)
+export const postTraduzir = (texto, de, para, signal) =>
+  api.post('/publico/traduzir', { texto, de, para }, { timeout: 60000, signal }).then((r) => r.data)
 export const postConversarPublico = (mensagens, nivel, cenario = null) =>
   api.post('/publico/conversar', { mensagens, nivel, cenario }, { timeout: 120000 }).then((r) => r.data)
