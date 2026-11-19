@@ -15,11 +15,17 @@ Assistente para praticar inglês com **IA rodando localmente** (Ollama). Traduz,
 - **Níveis** A1–C1 e legenda EN / PT / EN + PT.
 - **Visitante**: Tradução, Conversar e Fluente funcionam sem login (sem guardar nada, com limite de uso por IP). Histórico e Vocabulário exigem conta.
 
-| Conversa com cenário | Fluente (voz) | Vocabulário |
-|---|---|---|
-| ![Cenário](docs/cenario.png) | ![Fluente](docs/fluente.png) | ![Vocabulário](docs/vocabulario.png) |
+### Conversa com cenário
+![Conversa com cenário](docs/cenario.png)
 
+### Correção da IA
 ![Conversa com correção](docs/conversa.png)
+
+### Fluente (conversa por voz)
+![Fluente](docs/fluente.png)
+
+### Vocabulário
+![Vocabulário](docs/vocabulario.png)
 
 ## Tecnologias
 
