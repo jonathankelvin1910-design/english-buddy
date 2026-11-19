@@ -50,11 +50,14 @@ english-buddy/
 │   ├── app/
 │   │   ├── ia/            # provedor, prompts, validação, serviço
 │   │   ├── routers/       # auth, conversas, publico, vocabulario
-│   │   ├── models.py  schemas*.py  limites.py  config.py  main.py
+│   │   └── models.py, schemas*.py, security.py, limites.py, config.py, main.py
 │   ├── tests/
+│   ├── .env.example
+│   └── requirements.txt
+├── database/
 │   └── schema.sql         # cria o banco e as tabelas
 ├── frontend/
-│   └── src/ (api, componentes, paginas, utils)
+│   └── src/               # api, auth, componentes, paginas, utils
 └── docs/                  # imagens do README
 ```
 
@@ -73,7 +76,7 @@ english-buddy/
 **1. Banco de dados**
 
 ```bash
-mysql -u root -p < backend/schema.sql
+mysql -u root -p < database/schema.sql
 ```
 
 **2. Backend**
