@@ -22,8 +22,13 @@ const LEGENDAS = [
 const GRACA_MS = 1500 // pausa tolerada no meio da frase antes de o Buddy responder
 const MAX_SILENCIOS = 3 // quantas vezes seguidas o microfone pode ouvir silêncio antes de pausar
 
+const IDIOMAS_FALA = [
+  ['pt', 'Português'],
+  ['en', 'Inglês'],
+]
+
 const ROTULOS = {
-  parado: 'Toque em Começar e fale em inglês',
+  parado: 'Toque em Começar e fale',
   ouvindo: 'Ouvindo…',
   pensando: 'Buddy está pensando…',
   falando: 'Buddy está falando…',
@@ -39,6 +44,7 @@ export default function Fluente() {
   const [texto, setTexto] = useState('')
   const [verConversa, setVerConversa] = useState(false)
   const [legenda, setLegenda] = useState(() => ler('eb_fluente_legenda', 'ambos', LEGENDAS.map(([v]) => v)))
+  const [fala, setFala] = useState(() => ler('eb_fluente_fala', 'en', IDIOMAS_FALA.map(([v]) => v)))
 
   const ativoRef = useRef(false) // a conversa está em andamento
   const vozRef = useRef(false) // o microfone volta a ouvir sozinho
@@ -49,11 +55,16 @@ export default function Fluente() {
   const acumuladoRef = useRef('') // o que você já falou e ainda não foi enviado
   const gracaRef = useRef(null)
   const velRef = useRef(prefs.vel)
+  const falaRef = useRef(fala) // idioma em que você fala (o Buddy sempre responde em inglês)
   const fimRef = useRef(null)
 
   useEffect(() => {
     velRef.current = prefs.vel
   }, [prefs.vel])
+
+  useEffect(() => {
+    falaRef.current = fala
+  }, [fala])
 
   useEffect(
     () => () => {
@@ -68,6 +79,11 @@ export default function Fluente() {
   useEffect(() => {
     fimRef.current?.scrollIntoView?.({ block: 'end' })
   }, [mensagens.length, verConversa])
+
+  function mudarFala(valor) {
+    setFala(valor)
+    salvar('eb_fluente_fala', valor)
+  }
 
   function mudarLegenda(valor) {
     setLegenda(valor)
@@ -153,7 +169,7 @@ export default function Fluente() {
   function ouvir() {
     const minha = geracaoRef.current
     const rec = new Reconhecimento()
-    rec.lang = 'en-US'
+    rec.lang = falaRef.current === 'pt' ? 'pt-BR' : 'en-US'
     rec.interimResults = true
     rec.continuous = false
     let final = ''
@@ -259,7 +275,19 @@ export default function Fluente() {
         <div className={`avatar-fluente ${fase}`}>
           <img src={buddy} alt="Buddy" />
         </div>
-        <p className="fluente-estado" role="status">{ROTULOS[fase]}</p>
+        <p className="fluente-estado" role="status">
+          {fase === 'parado' ? `${ROTULOS.parado} em ${fala === 'pt' ? 'português' : 'inglês'}` : ROTULOS[fase]}
+        </p>
+        <div className="fluente-fala">
+          <span>Eu falo em</span>
+          <span className="seg" role="group" aria-label="Idioma em que você fala">
+            {IDIOMAS_FALA.map(([v, r]) => (
+              <button key={v} type="button" className={fala === v ? 'on' : ''} disabled={ocupado} onClick={() => mudarFala(v)}>
+                {r}
+              </button>
+            ))}
+          </span>
+        </div>
 
         {ocupado ? (
           <button className="botao grande parar" onClick={parar}>Parar</button>
@@ -316,7 +344,7 @@ export default function Fluente() {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           maxLength={500}
-          placeholder="Ou escreva em inglês…"
+          placeholder={fala === 'pt' ? 'Ou escreva em português…' : 'Ou escreva em inglês…'}
           aria-label="Sua mensagem"
           disabled={fase === 'pensando'}
         />

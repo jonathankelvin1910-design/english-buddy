@@ -249,6 +249,8 @@ img { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
 .avatar-fluente.falando { border-color: var(--destaque, #ff9a3c); animation: respira .8s ease-in-out infinite; }
 .avatar-fluente.pensando { border-style: dashed; }
 @keyframes respira { 50% { box-shadow: 0 0 0 14px rgba(59, 108, 232, .15); } }
+.fluente-fala { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--texto-suave); }
+.seg button:disabled { cursor: not-allowed; opacity: 0.6; }
 .fluente-estado { margin: 0; font-weight: 700; color: var(--texto-suave); }
 .fluente-aviso { margin: 0; max-width: 420px; text-align: center; color: var(--texto-suave); font-size: 14px; }
 .botao.grande { font-size: 18px; padding: 14px 34px; }
