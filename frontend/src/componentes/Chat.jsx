@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import CartaoFrases from './CartaoFrases'
+import CotaAviso from './CotaAviso'
 import Mensagem from './Mensagem'
 import BotaoMic from './BotaoMic'
 import VozControles from './VozControles'
@@ -47,6 +48,7 @@ export default function Chat({ conversa, legenda, pendente, abrindo = false, aoE
       </div>
 
       <VozControles />
+      <CotaAviso gatilho={`${mensagens.length}-${pendente ? 1 : 0}`} />
       <form className="entrada" onSubmit={enviar}>
         <input
           value={texto}

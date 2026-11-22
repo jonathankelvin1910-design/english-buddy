@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.cotas import gasto_chat, para_usuario
 from app.database import get_db
 from app.ia.base import ErroIA
 from app.ia.servico import gerar_abertura, gerar_resposta
@@ -94,7 +95,8 @@ def enviar(
 
     # Chama a IA antes de salvar: se falhar, nada fica gravado
     try:
-        resposta = gerar_resposta(historico, usuario.nivel, conversa.cenario)
+        with gasto_chat(para_usuario(usuario)):
+            resposta = gerar_resposta(historico, usuario.nivel, conversa.cenario)
     except ErroIA:
         raise HTTPException(502, "A IA não respondeu agora. Tente de novo.")
 
@@ -135,7 +137,8 @@ def abrir(conversa_id: int, usuario: Usuario = Depends(usuario_atual), db: Sessi
         raise HTTPException(409, "A conversa já começou")
 
     try:
-        resposta = gerar_abertura(usuario.nivel, conversa.cenario)
+        with gasto_chat(para_usuario(usuario)):
+            resposta = gerar_abertura(usuario.nivel, conversa.cenario)
     except ErroIA:
         raise HTTPException(502, "A IA não respondeu agora. Tente de novo.")
 

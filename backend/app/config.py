@@ -17,5 +17,11 @@ class Config(BaseSettings):
     ollama_model: str = ""
     ia_provedor: str = "ollama"
 
+    # Limites diários de uso da IA (o dia vira à meia-noite no fuso abaixo)
+    fuso: str = "America/Maceio"
+    limite_dia_traducao: int = 300  # por usuário ou IP
+    limite_dia_visitante: int = 30  # mensagens de Conversar + Fluente, por IP
+    limite_dia_usuario: int = 100  # mensagens de Conversar + Fluente, por conta
+
 
 config = Config()

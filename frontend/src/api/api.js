@@ -84,6 +84,7 @@ export const postFluente = (mensagens) =>
     .post('/publico/fluente', { mensagens: mensagens.map(({ papel, texto, traducao }) => ({ papel, texto, traducao })) }, { timeout: 120000 })
     .then((r) => r.data)
 
+export const getCota = () => api.get('/publico/cota').then((r) => r.data)
 export const postTraduzir = (texto, de, para, signal) =>
   api.post('/publico/traduzir', { texto, de, para }, { timeout: 60000, signal }).then((r) => r.data)
 export const postConversarPublico = (mensagens, nivel, cenario = null) =>

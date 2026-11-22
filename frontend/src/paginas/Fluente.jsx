@@ -3,6 +3,7 @@ import { mensagemErro, postFluente, postTraduzir } from '../api/api'
 import buddy from '../assets/buddy.svg'
 import BotaoOuvir from '../componentes/BotaoOuvir'
 import BotaoSalvar from '../componentes/BotaoSalvar'
+import CotaAviso from '../componentes/CotaAviso'
 import { ler, salvar } from '../utils/armazenamento'
 import {
   falar,
@@ -411,6 +412,7 @@ export default function Fluente() {
         </button>
       </div>
       <p className="fluente-nota">Esta conversa não é salva.</p>
+      <CotaAviso gatilho={mensagens.length} />
     </main>
   )
 }
