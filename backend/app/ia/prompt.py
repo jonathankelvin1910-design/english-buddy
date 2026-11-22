@@ -69,7 +69,12 @@ def montar_sistema(nivel: str, cenario: str | None = None, abertura: bool = Fals
         "Learner level: " + NIVEIS.get(nivel, NIVEIS["A2"]) + " Adapt your vocabulary to this level.\n"
     )
     if cenario:
-        texto += "Role-play scenario: " + cenario + ". " + PAPEIS.get(cenario, "") + " Stay in this role and keep it natural.\n"
+        texto += (
+            "Role-play scenario: " + cenario + ". " + PAPEIS.get(cenario, "") + " Stay in this role and keep it natural. "
+            "If the learner says something unrelated to the scene, first react to the SPECIFIC thing they said "
+            "in a few words, like a real person would (for example, if they mention school: Oh, you went to school "
+            "yesterday? Cool!), never with only a generic Nice!, and then steer back to the scene smoothly.\n"
+        )
     if abertura:
         texto += (
             "The learner has just arrived and has not written anything yet. Start the conversation yourself, "
