@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { mensagemErro, postFluente } from '../api/api'
+import { mensagemErro, postFluente, postTraduzir } from '../api/api'
 import buddy from '../assets/buddy.svg'
+import BotaoOuvir from '../componentes/BotaoOuvir'
+import BotaoSalvar from '../componentes/BotaoSalvar'
 import { ler, salvar } from '../utils/armazenamento'
 import {
   falar,
@@ -44,6 +46,7 @@ export default function Fluente() {
   const [texto, setTexto] = useState('')
   const [verConversa, setVerConversa] = useState(false)
   const [legenda, setLegenda] = useState(() => ler('eb_fluente_legenda', 'ambos', LEGENDAS.map(([v]) => v)))
+  const [dica, setDica] = useState(null) // como dizer em inglês o que você falou em português
   const [fala, setFala] = useState(() => ler('eb_fluente_fala', 'en', IDIOMAS_FALA.map(([v]) => v)))
 
   const ativoRef = useRef(false) // a conversa está em andamento
@@ -55,6 +58,7 @@ export default function Fluente() {
   const acumuladoRef = useRef('') // o que você já falou e ainda não foi enviado
   const gracaRef = useRef(null)
   const velRef = useRef(prefs.vel)
+  const dicaIdRef = useRef(0) // ignora traduções que chegam atrasadas
   const falaRef = useRef(fala) // idioma em que você fala (o Buddy sempre responde em inglês)
   const fimRef = useRef(null)
 
@@ -133,8 +137,26 @@ export default function Fluente() {
     }
   }
 
+  async function sugerirIngles(frase) {
+    const id = ++dicaIdRef.current
+    setDica({ original: frase, en: '', carregando: true })
+    try {
+      const r = await postTraduzir(frase, 'auto', 'en')
+      if (id !== dicaIdRef.current) return
+      // se a pessoa já falou em inglês, não há o que sugerir
+      setDica(r.idioma_origem === 'en' ? null : { original: frase, en: r.traducao, carregando: false })
+    } catch {
+      if (id === dicaIdRef.current) setDica(null)
+    }
+  }
+
   function enviar(fala) {
     silenciosRef.current = 0
+    if (falaRef.current === 'pt') sugerirIngles(fala)
+    else {
+      dicaIdRef.current += 1
+      setDica(null)
+    }
     const historico = [...mensagensRef.current, { papel: 'user', texto: fala }]
     guardar(historico)
     turno(historico)
@@ -242,6 +264,8 @@ export default function Fluente() {
   function novaConversa() {
     parar()
     guardar([])
+    dicaIdRef.current += 1
+    setDica(null)
     setErro('')
   }
 
@@ -321,6 +345,21 @@ export default function Fluente() {
           </div>
         )}
       </section>
+
+      {dica && (
+        <section className="dica-ingles" aria-label="Como dizer em inglês">
+          <span className="dica-rotulo">Em inglês você diria</span>
+          {dica.carregando ? (
+            <p className="dica-en dica-carregando">Traduzindo…</p>
+          ) : (
+            <div className="dica-linha">
+              <p className="dica-en">{dica.en}</p>
+              <BotaoOuvir texto={dica.en} idioma="en" />
+              <BotaoSalvar key={dica.en} en={dica.en} pt={dica.original} />
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="legenda-tela" aria-live="polite" aria-label="Legenda">
         {fase === 'ouvindo' && parcial ? (

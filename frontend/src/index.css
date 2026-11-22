@@ -258,6 +258,11 @@ img { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
 .fluente-conversa { width: 100%; max-width: 640px; background: #fff; border: 2px solid var(--borda); border-radius: 14px; padding: 10px 14px; max-height: 40%; overflow-y: auto; font-size: 14px; }
 .fluente-conversa p { margin: 6px 0; }
 .fluente-conversa .pt { color: var(--texto-suave); }
+.dica-ingles { width: 100%; box-sizing: border-box; background: #fff; border: 2px solid var(--borda); border-radius: 14px; padding: 10px 14px; margin-bottom: 10px; text-align: center; }
+.dica-rotulo { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texto-suave); margin-bottom: 4px; }
+.dica-linha { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.dica-en { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.3; }
+.dica-carregando { color: var(--texto-suave); font-weight: 600; }
 .legenda-tela { width: 100%; min-height: 96px; background: #25232d; color: #fff; border-radius: 16px; padding: 14px 18px; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
 .legenda-voce { margin: 0; font-size: 14px; color: #b9b7c4; }
 .legenda-en { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; }
